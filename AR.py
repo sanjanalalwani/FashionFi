@@ -6,6 +6,7 @@ from cvzone.PoseModule import PoseDetector
 # Initialize webcam capture
 cap = cv2.VideoCapture(0)
 detector = PoseDetector()
+
 # Folders for shirts and bottoms
 shirtFolderPath = "Resources/Shirts"
 bottomFolderPath = "Resources/Bottoms"
@@ -26,10 +27,17 @@ counterRight = 0
 counterLeft = 0
 selectionSpeed = 10
 
+# Set desired width and height for the output screen
+desired_width = 1280  # Example width
+desired_height = 720  # Example height
+
 while True:
     success, img = cap.read()
     if not success:
         break
+
+    # Resize the captured frame to desired dimensions
+    img = cv2.resize(img, (desired_width, desired_height))
 
     img = detector.findPose(img, draw=False)
     lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
@@ -40,14 +48,15 @@ while True:
         lm12 = lmList[12][1:3]  # Right shoulder
         imgShirt = cv2.imread(os.path.join(shirtFolderPath, listShirts[imageNumberShirt]), cv2.IMREAD_UNCHANGED)
 
+        # Calculate width and resize shirt
         widthOfShirt = int((lm11[0] - lm12[0]) * fixedRatio)
         imgShirt = cv2.resize(imgShirt, (widthOfShirt, int(widthOfShirt * shirtRatioHeightWidth)))
         currentScale = (lm11[0] - lm12[0]) / 190
         offsetShirt = int(44 * currentScale), int(48 * currentScale)
 
         try:
-            xPosShirt = lm12[0] - offsetShirt[0]
-            yPosShirt = lm12[1] - offsetShirt[1]
+            xPosShirt = int(lm12[0] - offsetShirt[0])
+            yPosShirt = int(lm12[1] - offsetShirt[1])
 
             # Ensure overlay does not go out of bounds
             if xPosShirt + imgShirt.shape[1] <= img.shape[1] and yPosShirt + imgShirt.shape[0] <= img.shape[0]:
@@ -60,14 +69,15 @@ while True:
         lm24 = lmList[24][1:3]  # Right hip
         imgBottom = cv2.imread(os.path.join(bottomFolderPath, listBottoms[imageNumberBottom]), cv2.IMREAD_UNCHANGED)
 
+        # Calculate width and resize bottom
         widthOfBottom = int((lm23[0] - lm24[0]) * fixedRatio)
         imgBottom = cv2.resize(imgBottom, (widthOfBottom, int(widthOfBottom * bottomRatioHeightWidth)))
         currentScaleBottom = (lm23[0] - lm24[0]) / 190
         offsetBottom = int(44 * currentScaleBottom), int(120 * currentScaleBottom)  # Adjust offset as needed
 
         try:
-            xPosBottom = lm24[0] - offsetBottom[0]
-            yPosBottom = lm24[1] - offsetBottom[1]
+            xPosBottom = int(lm24[0] - offsetBottom[0])
+            yPosBottom = int(lm24[1] - offsetBottom[1])
 
             # Ensure overlay does not go out of bounds
             if xPosBottom + imgBottom.shape[1] <= img.shape[1] and yPosBottom + imgBottom.shape[0] <= img.shape[0]:
@@ -75,13 +85,17 @@ while True:
         except Exception as e:
             print(f"Error overlaying bottom: {e}")
 
-        # Overlay Buttons for Shirt Selection
+        # Overlay Buttons for Shirt Selection (Shifted up slightly)
         try:
-            right_button_x = img.shape[1] - imgButtonRight.shape[1] - 50
-            right_button_y = 50
-            left_button_x = 50
-            left_button_y = 50
+            # Right button in the bottom-right corner, but slightly shifted up
+            right_button_x = img.shape[1] - imgButtonRight.shape[1] - 50  # 50px padding from the right
+            right_button_y = img.shape[0] - imgButtonRight.shape[0] - 100  # 100px padding from the bottom (shifted up)
 
+            # Left button in the bottom-left corner, but slightly shifted up
+            left_button_x = 50  # 50px padding from the left
+            left_button_y = img.shape[0] - imgButtonLeft.shape[0] - 100  # 100px padding from the bottom (shifted up)
+
+            # Overlay buttons
             img = cvzone.overlayPNG(img, imgButtonRight, (right_button_x, right_button_y))
             img = cvzone.overlayPNG(img, imgButtonLeft, (left_button_x, left_button_y))
         except Exception as e:
@@ -108,6 +122,3 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
-
-
-
