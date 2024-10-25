@@ -1,9 +1,9 @@
+// src/components/Products.jsx
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { addCart, addWishlist } from "../redux/action"; // Import the addWishlist action
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import toast from "react-hot-toast";
+import ProductCard from "./ProductCard";
 import Shirt1 from '../assets/Shirt1.png';
 import Shirt2 from '../assets/Shirt2.png';
 import Shirt3 from '../assets/Shirt3.png';
@@ -11,42 +11,33 @@ import Shirt3 from '../assets/Shirt3.png';
 const Products = () => {
   const [filter, setFilter] = useState([]);
   const [loading, setLoading] = useState(true);
-  const dispatch = useDispatch();
 
-  const addProduct = (product) => {
-    dispatch(addCart(product));
-    toast.success(`${product.title} added to cart!`);
-  };
-
-  const addToWishlist = (product) => {
-    dispatch(addWishlist(product));
-    toast.success(`${product.title} added to wishlist!`);
-  };
-
+  // Products array with multiple images for each product
   const products = [
     {
       id: 1,
       title: "Men's Casual T-Shirt",
       description: "Comfortable and stylish T-shirt for men.",
       price: 200,
-      image: Shirt1,
+      images: [Shirt1, Shirt2], // Multiple images
     },
     {
       id: 2,
       title: "Men's Casual T-Shirt",
       description: "Comfortable and stylish T-shirt for men.",
       price: 200,
-      image: Shirt2,
+      images: [Shirt2, Shirt3], // Multiple images
     },
     {
       id: 3,
       title: "Men's Casual T-Shirt",
       description: "Comfortable and stylish T-shirt for men.",
       price: 200,
-      image: Shirt3,
+      images: [Shirt3, Shirt1], // Multiple images
     },
   ];
 
+  // Simulate loading and set products
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
@@ -54,6 +45,7 @@ const Products = () => {
     }, 1000);
   }, []);
 
+  // Loading skeleton
   const Loading = () => (
     <>
       <div className="col-12 py-5 text-center">
@@ -62,33 +54,6 @@ const Products = () => {
       {Array(6).fill(0).map((_, index) => (
         <div className="col-md-4 col-sm-6 col-xs-8 col-12 mb-4" key={index}>
           <Skeleton height={592} />
-        </div>
-      ))}
-    </>
-  );
-
-  const ShowProducts = () => (
-    <>
-      {filter.map((product) => (
-        <div id={product.id} key={product.id} className="col-md-4 col-sm-6 col-xs-8 col-12 mb-4">
-          <div className="card text-center h-100">
-            <img className="card-img-top p-3" src={product.image} alt={product.title} height={300} />
-            <div className="card-body">
-              <h5 className="card-title">{product.title.substring(0, 12)}...</h5>
-              <p className="card-text">{product.description.substring(0, 90)}...</p>
-            </div>
-            <ul className="list-group list-group-flush">
-              <li className="list-group-item lead">Rs. {product.price}</li>
-            </ul>
-            <div className="card-body">
-              <button className="btn btn-dark m-1" onClick={() => addProduct(product)}>
-                Add to Cart
-              </button>
-              <button className="btn btn-dark m-1" onClick={() => addToWishlist(product)}>
-                Add to Wishlist
-              </button>
-            </div>
-          </div>
         </div>
       ))}
     </>
@@ -103,7 +68,9 @@ const Products = () => {
         </div>
       </div>
       <div className="row justify-content-center">
-        {loading ? <Loading /> : <ShowProducts />}
+        {loading ? <Loading /> : filter.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
     </div>
   );

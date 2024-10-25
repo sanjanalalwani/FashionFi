@@ -37,3 +37,6 @@
     }
   }
   
+  .card-body .btn {
+    width: 48%; /* Adjust the button width for spacing */
+}
