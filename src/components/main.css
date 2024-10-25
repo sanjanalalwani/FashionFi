@@ -1,42 +1,49 @@
 .hero {
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .hero .card {
-    position: relative;
-    border: none;
-  }
-  
+  position: relative;
+  overflow: hidden;
+}
+
+.hero .card {
+  position: relative;
+  border: none;
+}
+
+.hero .card-img {
+  width: 100%;
+  height: auto; /* Automatically adjust height based on width */
+  max-height: 300px; /* Adjust max height to fit your design */
+  object-fit: cover; /* Use cover to maintain aspect ratio */
+}
+
+.hero .card-img-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.4); /* Dark overlay for text contrast */
+}
+
+@media (max-width: 768px) {
   .hero .card-img {
-    width: 100%;
-    height: auto;
-    max-height: 600px;
-    object-fit: cover;
+      max-height: 200px; /* Reduced max height for smaller screens */
   }
-  
-  .hero .card-img-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4); /* Dark overlay for text contrast */
-  }
-  
-  @media (max-width: 768px) {
-    .hero .card-img {
-      max-height: 400px;
-    }
-  
-    .hero .card-img-overlay .container h5 {
+
+  .hero .card-img-overlay .container h5 {
       font-size: 1.5rem;
-    }
   }
-  
-  .card-body .btn {
-    width: 48%; /* Adjust the button width for spacing */
+}
+
+.card-body .btn {
+  width: 48%; /* Adjust the button width for spacing */
+}
+
+/* New styles specifically for the wishlist images */
+.card-img-top {
+  width: 100%; /* Ensure image spans the width of the card */
+  height: 300px; /* Set a fixed height for uniformity */
+  object-fit: contain; /* Maintain the aspect ratio without cropping */
 }

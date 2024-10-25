@@ -9,11 +9,13 @@ const Wishlist = () => {
   const wishlist = useSelector((state) => state.handleWishlist);
   const dispatch = useDispatch();
 
+  // Function to remove an item from the wishlist
   const removeFromWishlist = (id) => {
     dispatch(removeWishlist(id));
     toast.success("Product removed from wishlist!");
   };
 
+  // Component to display when the wishlist is empty
   const EmptyWishlist = () => {
     return (
       <div className="container">
@@ -29,13 +31,19 @@ const Wishlist = () => {
     );
   };
 
+  // Component to display the wishlist items
   const ShowWishlist = () => {
     return (
       <div className="row">
         {wishlist.map((product) => (
           <div key={product.id} className="col-md-4 col-sm-6 col-xs-8 col-12 mb-4">
             <div className="card text-center h-100">
-              <img className="card-img-top p-3" src={product.image} alt={product.title} height={300} />
+              <img
+                className="card-img-top" // Use the card-img-top class
+                src={product.image} // Display the product image
+                alt={product.title}
+                style={{ height: '300px', objectFit: 'contain' }} // Set fixed height and fit style
+              />
               <div className="card-body">
                 <h5 className="card-title">{product.title}</h5>
                 <p className="card-text">{product.description}</p>
@@ -56,6 +64,7 @@ const Wishlist = () => {
       <div className="container my-3 py-3">
         <h2 className="display-5 text-center">Your Wishlist</h2>
         <hr />
+        {/* Conditionally render the wishlist or empty state */}
         {wishlist.length > 0 ? <ShowWishlist /> : <EmptyWishlist />}
       </div>
       <Footer />

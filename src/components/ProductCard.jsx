@@ -14,12 +14,20 @@ const ProductCard = ({ product }) => {
   });
 
   const addProduct = () => {
-    dispatch(addCart(product));
+    const productWithImage = {
+      ...product,
+      image: product.images[currentImageIndex], // Include the current image
+    };
+    dispatch(addCart(productWithImage));
     toast.success(`${product.title} added to cart!`);
   };
 
   const addToWishlist = () => {
-    dispatch(addWishlist(product));
+    const productWithImage = {
+      ...product,
+      image: product.images[currentImageIndex], // Include the current image
+    };
+    dispatch(addWishlist(productWithImage)); // Dispatch the product with image
     toast.success(`${product.title} added to wishlist!`);
   };
 
