@@ -1,0 +1,30 @@
+/* Add this CSS to your main stylesheet (e.g., Navbar.css or App.css) */
+
+/* Container for the logo and text */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* Logo image styling */
+.navbar-brand img {
+    height: 40px; /* Adjust height as needed */
+    width: auto; /* Ensures the image retains its aspect ratio */
+    margin-right: 10px; /* Spacing between the logo and the text */
+    object-fit: contain; /* Ensures the image doesn't distort */
+}
+
+/* Optional: Additional styling for text */
+.navbar-brand span {
+    font-size: 1.5rem; /* Adjust text size */
+    font-weight: bold;
+    color: #333; /* Adjust the color if needed */
+}
+
+/* Responsive adjustment for small screens */
+@media (max-width: 768px) {
+    .navbar-brand img {
+        height: 35px; /* Make the logo a bit smaller on mobile */
+    }
+}
