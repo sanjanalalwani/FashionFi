@@ -1,6 +1,10 @@
-import handleCart from './handleCart'
 import { combineReducers } from "redux";
+import handleCart from './handleCart';
+import handleWishlist from './handleWishlist'; // Import your wishlist reducer
+
 const rootReducers = combineReducers({
     handleCart,
-})
-export default rootReducers
+    handleWishlist // Add the wishlist reducer here
+});
+
+export default rootReducers;

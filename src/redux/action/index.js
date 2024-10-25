@@ -13,3 +13,17 @@ export const delCart = (product) =>{
         payload:product
     }
 }
+
+export const addWishlist = (product) => {
+    return {
+      type: "ADD_TO_WISHLIST",
+      payload: product,
+    };
+  };
+  
+  export const removeWishlist = (productId) => {
+    return {
+        type: "REMOVE_FROM_WISHLIST",
+        payload: { id: productId }, // Wrap productId in an object
+    };
+};
