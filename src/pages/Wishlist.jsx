@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { Footer, Navbar } from "../components";
 import { useSelector, useDispatch } from "react-redux";
 import { addCart, removeWishlist } from "../redux/action";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import ARTryOn from "../components/ARTryOn";
 
 const Wishlist = () => {
   const wishlist = useSelector((state) => state.handleWishlist);
   const dispatch = useDispatch();
+  const [showAR, setShowAR] = useState(false);
 
   const removeFromWishlist = (id) => {
     dispatch(removeWishlist(id));
@@ -20,30 +21,12 @@ const Wishlist = () => {
     toast.success(`${product.title} added to cart!`);
   };
 
-  const tryOnWishlist = async () => {
-    // Check if wishlist is not empty before trying on products
+  const tryOnWishlist = () => {
     if (wishlist.length === 0) {
       toast.error("Your wishlist is empty. Add products to try them on!");
       return;
     }
-
-    // Extract product images from wishlist to send to the AR server
-    const productImages = wishlist.map((product) => product.image);
-
-    try {
-      const response = await axios.post("http://localhost:5000/trigger-ar", {
-        images: productImages, // Send images to the server for AR processing
-      });
-
-      if (response.status === 200) {
-        toast.success("Launching AR try-on with your wishlist items!");
-      } else {
-        toast.error("Failed to launch AR try-on. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error launching AR try-on:", error);
-      toast.error("Failed to launch AR try-on.");
-    }
+    setShowAR(true);
   };
 
   const EmptyWishlist = () => (
@@ -72,8 +55,8 @@ const Wishlist = () => {
             />
             <div className="card-body">
               <h5 className="card-title">{product.title}</h5>
-              <p className="card-text">{product.description.substring(0, 90)}...</p> {/* Shortened Description */}
-              <p className="card-text lead">Rs. {product.price}</p> {/* Price Display */}
+              <p className="card-text">{product.description?.substring(0, 90)}...</p>
+              <p className="card-text lead">Rs. {product.price}</p>
               <button className="btn btn-danger m-1" onClick={() => removeFromWishlist(product.id)}>
                 Remove from Wishlist
               </button>
@@ -98,6 +81,13 @@ const Wishlist = () => {
         <hr />
         {wishlist.length > 0 ? <ShowWishlist /> : <EmptyWishlist />}
       </div>
+
+      {showAR && (
+        <ARTryOn
+          products={wishlist}
+          onClose={() => setShowAR(false)}
+        />
+      )}
       <Footer />
     </>
   );

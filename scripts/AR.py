@@ -1,90 +1,116 @@
-# Import necessary libraries
-import os
-import cvzone
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import cv2
-import sys
+import numpy as np
+import base64
 from cvzone.PoseModule import PoseDetector
+import cvzone
+import traceback
 
-# Initialize webcam capture
-cap = cv2.VideoCapture(0)
+app = Flask(__name__)
+CORS(app)
+
+# Initialize pose detector
 detector = PoseDetector()
 
-# Load shirts from command-line arguments
-listShirts = sys.argv[1:]  # Pass wishlist images as arguments
-if not listShirts:
-    print("No shirts provided.")
-    cap.release()
-    cv2.destroyAllWindows()
-    sys.exit(0)
+# Fixed ratios based on your working code
+fixedRatio = 262 / 190  # Adjusted based on the shirt image dimensions
+shirtRatioHeightWidth = 581 / 440  # Height-to-width ratio of the shirt image
 
-fixedRatio = 262 / 190
-shirtRatioHeightWidth = 581 / 440
-imageNumber = 0
+def overlay_image(background, overlay, position):
+    """Overlay an image with alpha channel onto another image using cvzone"""
+    try:
+        background = cvzone.overlayPNG(background, overlay, position)
+    except Exception as e:
+        print(f"Error in overlay_image: {e}")
+        traceback.print_exc()
+    return background
 
-# Load button images
-imgButtonRight = cv2.imread(os.path.join(os.path.dirname(__file__), "Resources", "button.png"), cv2.IMREAD_UNCHANGED)
-imgButtonLeft = cv2.flip(imgButtonRight, 1)
-counterRight = 0
-counterLeft = 0
-selectionSpeed = 10
+@app.route('/process_frame', methods=['POST'])
+def process_frame():
+    try:
+        data = request.json
+        if 'frame' not in data or 'productImage' not in data:
+            return jsonify({'error': 'Missing frame or product image data'}), 400
 
-while True:
-    success, img = cap.read()
-    if not success:
-        break
+        # Decode video frame
+        img_data = base64.b64decode(data['frame'])
+        nparr = np.frombuffer(img_data, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
-    img = detector.findPose(img, draw=False)
-    lmList, bboxInfo = detector.findPosition(img, bboxWithHands=False, draw=False)
+        # Flip the frame horizontally to match user's perspective
+        frame = cv2.flip(frame, 1)
 
-    if lmList:
-        lm11 = lmList[11][1:3]
-        lm12 = lmList[12][1:3]
-        imgShirt = cv2.imread(listShirts[imageNumber], cv2.IMREAD_UNCHANGED)
+        # Convert frame to RGB as MediaPipe expects RGB images
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        widthOfShirt = int((lm11[0] - lm12[0]) * fixedRatio)
-        imgShirt = cv2.resize(imgShirt, (widthOfShirt, int(widthOfShirt * shirtRatioHeightWidth)))
-        currentScale = (lm11[0] - lm12[0]) / 190
-        offset = int(44 * currentScale), int(48 * currentScale)
+        # Decode product image from base64
+        img_data = base64.b64decode(data['productImage'])
+        nparr = np.frombuffer(img_data, np.uint8)
+        product_img = cv2.imdecode(nparr, cv2.IMREAD_UNCHANGED)
 
-        try:
-            xPos = lm12[0] - offset[0]
-            yPos = lm12[1] - offset[1]
+        if product_img is None:
+            return jsonify({'error': 'Failed to process product image'}), 500
 
-            if xPos + imgShirt.shape[1] <= img.shape[1] and yPos + imgShirt.shape[0] <= img.shape[0]:
-                img = cvzone.overlayPNG(img, imgShirt, (xPos, yPos))
-        except Exception as e:
-            print(f"Error overlaying shirt: {e}")
+        # Detect pose
+        frame_rgb = detector.findPose(frame_rgb, draw=False)
+        lmList, bboxInfo = detector.findPosition(
+            frame_rgb, bboxWithHands=False, draw=False
+        )
 
-        # Show navigation buttons
-        try:
-            right_button_x = img.shape[1] - imgButtonRight.shape[1] - 50
-            right_button_y = 50
-            left_button_x = 50
-            left_button_y = 50
+        if lmList and len(lmList) >= 13:
+            # Convert frame back to BGR for OpenCV processing
+            frame = cv2.cvtColor(frame_rgb, cv2.COLOR_RGB2BGR)
 
-            img = cvzone.overlayPNG(img, imgButtonRight, (right_button_x, right_button_y))
-            img = cvzone.overlayPNG(img, imgButtonLeft, (left_button_x, left_button_y))
-        except Exception as e:
-            print(f"Error overlaying buttons: {e}")
+            # Get shoulder points
+            lm11 = lmList[11][1:3]  # Left shoulder
+            lm12 = lmList[12][1:3]  # Right shoulder
 
-        # Detect button activation through hand positioning
-        if lmList[16][1] < 300:  # Right hand raised
-            counterRight += 1
-            if counterRight * selectionSpeed > 360:
-                counterRight = 0
-                imageNumber = (imageNumber + 1) % len(listShirts)
-        elif lmList[15][1] < 300:  # Left hand raised
-            counterLeft += 1
-            if counterLeft * selectionSpeed > 360:
-                counterLeft = 0
-                imageNumber = (imageNumber - 1) % len(listShirts)
+            # Calculate shirt width based on shoulder distance
+            shoulder_distance = lm12[0] - lm11[0]
+            widthOfShirt = int(shoulder_distance * fixedRatio)
+            if widthOfShirt <= 0:
+                widthOfShirt = 200  # Default width if calculation fails
+
+            # Resize the shirt image
+            shirtHeight = int(widthOfShirt * shirtRatioHeightWidth)
+            product_resized = cv2.resize(product_img, (widthOfShirt, shirtHeight), interpolation=cv2.INTER_AREA)
+
+            # Calculate current scale and offsets
+            currentScale = shoulder_distance / 190  # 190 is base shoulder width in pixels
+            offset = (int(44 * currentScale), int(48 * currentScale))
+            # Determine position to overlay
+            xPos = int(lm11[0]) - 2 * offset[0]
+            yPos = int(lm11[1]) - 2 * offset[1]
+
+            # Adjust the overlay position calculation
+            # offset = (int(widthOfShirt * 0.2), int(shirtHeight * 0.2))  # Adjust these ratios
+            # xPos = int(((lm11[0] + lm12[0]) / 2 - widthOfShirt / 2)) - offset[0]  # Center between shoulders
+            # yPos = int((lm11[1] - shirtHeight * 0.6)) - offset[1]  # Position higher up on torso
+
+            # Debug statements
+            print(f"Left Shoulder: {lm11}")
+            print(f"Right Shoulder: {lm12}")
+            print(f"Shoulder Distance: {shoulder_distance}")
+            print(f"Width of Shirt: {widthOfShirt}")
+            print(f"Shirt Height: {shirtHeight}")
+            print(f"Position X: {xPos}, Position Y: {yPos}")
+
+            # Overlay the shirt
+            frame = overlay_image(frame, product_resized, (xPos, yPos))
         else:
-            counterRight = 0
-            counterLeft = 0
+            print("Insufficient landmarks detected")
 
-    cv2.imshow("Image", img)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # Encode processed frame
+        _, buffer = cv2.imencode('.jpg', frame)
+        processed_frame = base64.b64encode(buffer).decode('utf-8')
 
-cap.release()
-cv2.destroyAllWindows()
+        return jsonify({'frame': processed_frame})
+
+    except Exception as e:
+        print(f"Error processing frame: {e}")
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
