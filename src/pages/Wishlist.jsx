@@ -1,7 +1,7 @@
 import React from "react";
 import { Footer, Navbar } from "../components";
 import { useSelector, useDispatch } from "react-redux";
-import { removeWishlist } from "../redux/action";
+import { addCart, removeWishlist } from "../redux/action";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -13,6 +13,11 @@ const Wishlist = () => {
   const removeFromWishlist = (id) => {
     dispatch(removeWishlist(id));
     toast.success("Product removed from wishlist!");
+  };
+
+  const addToCart = (product) => {
+    dispatch(addCart(product));
+    toast.success(`${product.title} added to cart!`);
   };
 
   const tryOnWishlist = async () => {
@@ -67,9 +72,13 @@ const Wishlist = () => {
             />
             <div className="card-body">
               <h5 className="card-title">{product.title}</h5>
-              <p className="card-text">{product.description}</p>
-              <button className="btn btn-danger" onClick={() => removeFromWishlist(product.id)}>
+              <p className="card-text">{product.description.substring(0, 90)}...</p> {/* Shortened Description */}
+              <p className="card-text lead">Rs. {product.price}</p> {/* Price Display */}
+              <button className="btn btn-danger m-1" onClick={() => removeFromWishlist(product.id)}>
                 Remove from Wishlist
+              </button>
+              <button className="btn btn-dark m-1" onClick={() => addToCart(product)}>
+                Add to Cart
               </button>
             </div>
           </div>
