@@ -62,6 +62,9 @@ const Wishlist = () => {
     <>
       <Navbar />
       <div className="container my-3 py-3">
+      <button className="btn btn-dark m-1">
+            Try On Your Wishlisted Products
+          </button>
         <h2 className="display-5 text-center">Your Wishlist</h2>
         <hr />
         {/* Conditionally render the wishlist or empty state */}
