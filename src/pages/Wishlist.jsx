@@ -22,14 +22,21 @@ const Wishlist = () => {
       return;
     }
 
-    const productImages = wishlist.map((product) => product.image); // Extract images from wishlist
+    // Extract product images from wishlist to send to the AR server
+    const productImages = wishlist.map((product) => product.image);
+
     try {
       const response = await axios.post("http://localhost:5000/trigger-ar", {
-        images: productImages, // Pass images to the server
+        images: productImages, // Send images to the server for AR processing
       });
-      toast.success(response.data.message);
+
+      if (response.status === 200) {
+        toast.success("Launching AR try-on with your wishlist items!");
+      } else {
+        toast.error("Failed to launch AR try-on. Please try again.");
+      }
     } catch (error) {
-      console.error("Failed to launch AR try-on:", error);
+      console.error("Error launching AR try-on:", error);
       toast.error("Failed to launch AR try-on.");
     }
   };

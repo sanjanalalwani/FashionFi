@@ -10,8 +10,13 @@ cap = cv2.VideoCapture(0)
 detector = PoseDetector()
 
 # Load shirts from command-line arguments
-shirtFolderPath = os.path.join(os.path.dirname(__file__), 'Resources', 'Shirts')
 listShirts = sys.argv[1:]  # Pass wishlist images as arguments
+if not listShirts:
+    print("No shirts provided.")
+    cap.release()
+    cv2.destroyAllWindows()
+    sys.exit(0)
+
 fixedRatio = 262 / 190
 shirtRatioHeightWidth = 581 / 440
 imageNumber = 0
