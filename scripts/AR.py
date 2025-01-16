@@ -54,7 +54,9 @@ def process_frame():
 
         # Detect pose
         frame_rgb = detector.findPose(frame_rgb, draw=False)
-        lmList, bboxInfo = detector.findPosition(frame_rgb, bboxWithHands=False, draw=False)
+        lmList, bboxInfo = detector.findPosition(
+            frame_rgb, bboxWithHands=False, draw=False
+        )
 
         if lmList and len(lmList) >= 13:
             # Convert frame back to BGR for OpenCV processing
@@ -66,21 +68,20 @@ def process_frame():
 
             # Calculate shirt width based on shoulder distance
             shoulder_distance = lm12[0] - lm11[0]
-            widthOfShirt = int(shoulder_distance * fixedRatio * 1.4)  # Increased width by 40%
+            widthOfShirt = int(shoulder_distance * fixedRatio)
             if widthOfShirt <= 0:
                 widthOfShirt = 200  # Default width if calculation fails
 
             # Resize the shirt image
-            shirtHeight = int(widthOfShirt * shirtRatioHeightWidth * 1.2)  # Increased height by 20%
-            product_resized = cv2.resize(product_img, (widthOfShirt, int(shirtHeight)), interpolation=cv2.INTER_AREA)
+            shirtHeight = int(widthOfShirt * shirtRatioHeightWidth)
+            product_resized = cv2.resize(product_img, (widthOfShirt, shirtHeight), interpolation=cv2.INTER_AREA)
 
-            # Calculate overlay position based on shoulder center
-            shoulder_center_x = (lm11[0] + lm12[0]) // 2
-            shoulder_center_y = (lm11[1] + lm12[1]) // 2
-
-            # Set position for the shirt overlay, adjusting the y-coordinate to place it lower
-            xPos = shoulder_center_x - widthOfShirt // 2
-            yPos = shoulder_center_y - int(shirtHeight * 0.25)  # Shifted down by adjusting the upward adjustment
+            # Calculate current scale and offsets
+            currentScale = shoulder_distance / 190  # 190 is base shoulder width in pixels
+            offset = (int(44 * currentScale), int(48 * currentScale))
+            # Determine position to overlay
+            xPos = int(lm11[0]) - 2 * offset[0]
+            yPos = int(lm11[1]) - 2 * offset[1]
 
             # Debug statements
             print(f"Left Shoulder: {lm11}")

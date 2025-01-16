@@ -43,7 +43,6 @@ app.post('/trigger-ar', (req, res) => {
   }
 });
 
-
 // GET endpoint for Python to retrieve the latest image
 app.get('/latest-image', (req, res) => {
   try {
@@ -66,7 +65,28 @@ app.get('/latest-image', (req, res) => {
   }
 });
 
+// POST endpoint for processing a frame
+app.post('/process_frame', (req, res) => {
+  try {
+    const { frame, productImage } = req.body;
 
+    if (!frame || !productImage) {
+      console.log('Frame or product image not provided.');
+      return res.status(400).json({ message: 'Frame or product image not provided' });
+    }
+
+    console.log('Received frame:', frame.slice(0, 50)); // Log first 50 characters for debug
+    console.log('Received product image:', productImage.slice(0, 50)); // Log first 50 characters for debug
+
+    // Process the frame with AR logic (mock processing here)
+    const processedFrame = `Processed frame with product image`; // Placeholder logic
+
+    res.status(200).json({ frame: processedFrame });
+  } catch (error) {
+    console.error('Error processing frame:', error);
+    res.status(500).json({ message: 'Failed to process frame', error: error.message });
+  }
+});
 
 // Start server
 app.listen(PORT, () => {

@@ -16,8 +16,8 @@ const ARTryOn = ({ products, onClose }) => {
         stream = await navigator.mediaDevices.getUserMedia({
           video: {
             facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
           },
         });
 
@@ -28,7 +28,9 @@ const ARTryOn = ({ products, onClose }) => {
           setError(null);
         }
       } catch (err) {
-        setError('Failed to access camera. Please ensure camera permissions are granted.');
+        setError(
+          'Failed to access camera. Please ensure camera permissions are granted.'
+        );
         console.error('Camera access error:', err);
       }
     };
@@ -78,17 +80,18 @@ const ARTryOn = ({ products, onClose }) => {
     const ctx = canvas.getContext('2d');
 
     const processFrame = async () => {
-      // Match canvas size to video dimensions if they change
-      if (canvas.width !== videoRef.current.videoWidth || canvas.height !== videoRef.current.videoHeight) {
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-      }
+      // Set canvas size to match video
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
 
+      // Draw the current video frame
       ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
       try {
+        // Convert canvas to base64
         const base64Frame = canvas.toDataURL('image/jpeg').split(',')[1];
 
+        // Send frame and selected product image to processing server
         const response = await fetch('http://localhost:5000/process_frame', {
           method: 'POST',
           headers: {
@@ -102,9 +105,9 @@ const ARTryOn = ({ products, onClose }) => {
 
         if (response.ok) {
           const { frame } = await response.json();
+          // Draw the processed frame with overlay
           const img = new Image();
           img.onload = () => {
-            // Clear canvas only when drawing new frame to avoid flicker
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           };
@@ -128,9 +131,9 @@ const ARTryOn = ({ products, onClose }) => {
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-75 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg p-4 max-w-7xl w-full">
+      <div className="bg-white rounded-lg p-4 max-w-4xl w-full">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-3xl font-bold">Virtual Try-On</h2>
+          <h2 className="text-2xl font-bold">Virtual Try-On</h2>
           <button
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={onClose}
@@ -142,21 +145,20 @@ const ARTryOn = ({ products, onClose }) => {
         {error ? (
           <div className="text-red-500 p-4 text-center">{error}</div>
         ) : (
-          <div className="relative aspect-video bg-black rounded-lg overflow-hidden" style={{ width: '100%', height: 'auto' }}>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full object-cover"
-              width={videoRef.current?.videoWidth || 1280}
-              height={videoRef.current?.videoHeight || 720}
-            />
-          </div>
+          <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+          {/* Remove the mirroring since we're handling it on the server */}
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
         )}
 
         <div className="mt-4">
@@ -175,7 +177,7 @@ const ARTryOn = ({ products, onClose }) => {
                 <img
                   src={product.image}
                   alt={product.title}
-                  className="w-32 h-32 object-cover rounded-lg"
+                  className="w-24 h-24 object-cover rounded-lg"
                 />
                 {selectedProduct?.id === product.id && (
                   <div className="absolute inset-0 bg-blue-500 bg-opacity-20 rounded-lg" />
