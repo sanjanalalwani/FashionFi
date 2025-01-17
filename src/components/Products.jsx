@@ -59,10 +59,26 @@ const Products = () => {
     </>
   );
 
+  // Function to handle the "Try On all the products" button click
+  const handleTryOnClick = () => {
+    fetch('http://localhost:5000/try-on', {
+      method: 'POST',
+    })
+      .then((response) => response.json())
+      .then((data) => toast.success(data.message))
+      .catch((error) => toast.error("Error: " + error));
+  };
+
   return (
     <div className="container my-3 py-3">
       <div className="row">
         <div className="col-12">
+          <button 
+            className="btn btn-primary mb-3" 
+            onClick={handleTryOnClick} // Attach the click handler
+          >
+            Try On all the products
+          </button>
           <h2 className="display-5 text-center">Latest Products</h2>
           <hr />
         </div>
