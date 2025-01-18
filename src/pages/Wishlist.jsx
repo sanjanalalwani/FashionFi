@@ -91,9 +91,9 @@ const Wishlist = () => {
     <>
       <Navbar />
       <div className="container my-3 py-3">
-        <button className="btn btn-dark m-1" onClick={tryOnWishlist}>
+        {/* <button className="btn btn-dark m-1" onClick={tryOnWishlist}>
           Try On Your Wishlisted Products
-        </button>
+        </button> */}
         <h2 className="display-5 text-center">Your Wishlist</h2>
         <hr />
         {wishlist.length > 0 ? <ShowWishlist /> : <EmptyWishlist />}

@@ -9,3 +9,4 @@ export { default as Register } from './Register';
 export { default as Checkout } from './Checkout';
 export { default as PageNotFound } from './PageNotFound';
 export { default as Wishlist} from './Wishlist';
+export {default as Community} from './Community';

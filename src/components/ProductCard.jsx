@@ -65,10 +65,10 @@ const ProductCard = ({ product }) => {
             Add to Wishlist
           </button>
         </div>
-        <div className="d-flex justify-content-between">
+        {/* <div className="d-flex justify-content-between">
           <button className="btn btn-secondary" onClick={swipeLeft}>Swipe Left</button>
           <button className="btn btn-secondary" onClick={swipeRight}>Swipe Right</button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

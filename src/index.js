@@ -16,11 +16,12 @@ import {
   Login,
   Register,
   Checkout,
-  PageNotFound,
-  Wishlist 
+  PageNotFound, 
+  Wishlist,
 } from "./pages";
 import ScrollToTop from "./components/ScrollToTop";
 import { Toaster } from "react-hot-toast";
+import Community from "./pages/Community";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
@@ -40,6 +41,7 @@ root.render(
           <Route path="*" element={<PageNotFound />} />
           <Route path="/product/*" element={<PageNotFound />} />
           <Route path="/wishlist" element={<Wishlist />} />
+          <Route path = "/community" element={<Community/>} />
         </Routes>
       </Provider>
     </ScrollToTop>
